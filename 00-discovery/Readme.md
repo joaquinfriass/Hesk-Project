@@ -112,7 +112,17 @@ Para que la solicitud mantenga su trazabilidad desde la apertura hasta el cierre
 - **Validación en Endpoints AJAX y Descargas:** Se requiere verificar que cada endpoint auxiliar (**`upload_attachment.php`**, **`download_attachment.php`**, endpoints AJAX) valide de forma estricta los permisos de categoría y funciones antes de entregar o procesar datos.
 
 ---
-
-**3. Evidencia Recomendada para Guardar**
-
 **Matriz Actor por Capacidad**
+
+| **Capacidad / Función** | **Visitante / Cliente** | **Cliente Registrado** | **Agente (Staff)** | **Administrador** |
+| --- | --- | --- | --- | --- |
+| **Ver KB Pública** | Sí | Sí | Sí | Sí |
+| **Ver KB Privada / Borradores** | No | No | Según privilegio | Sí |
+| **Crear Ticket Web** | Sí | Sí | Sí (a nombre de cliente) | Sí |
+| **Consultar Ticket** | Sí | Sí | Sí | Sí |
+| **Cerrar Ticket** | No | No | Sí | Sí |
+| **Consultar Tickets Ajenos** | No | No | Solo en sus categorías | Sí |
+| **Agregar Notas Internas** | No | No | Sí | Sí |
+| **Reasignar Propietario / Mover** | No | No | Sí | Sí |
+| **Gestionar Usuarios / Grupos** | No | No | No | Sí |
+| **Configurar Sistema / Correo** | No | No | No | Sí |
