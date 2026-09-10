@@ -1,1 +1,48 @@
+## 1. Definir el contexto del producto
 
+### **Problema y necesidad que resuelve HESK**
+
+Un servicio de mesa de ayuda (*help desk*) como HESK resuelve la **desorganización, dispersión y falta de seguimiento** de las solicitudes de atención o soporte que de otro modo llegarían por canales no estructurados (como correos individuales o mensajes verbales).
+En términos de comportamientos observables, HESK **centraliza las peticiones entrantes convirtiéndolas en tickets** con un identificador único de seguimiento (**`trackid`**), les asigna una categoría, prioridad y estado inicial, registra todo el historial de la conversación con sus adjuntos y ofrece un portal de autoservicio para resolver dudas recurrentes.
+
+### **Actores, comportamientos observables y resultados esperados**
+
+**1. Cliente / Solicitante (con o sin cuenta registrada)**
+
+- **Comportamientos observables:** Navega por la Base de Conocimiento (KB) pública buscando artículos; completa el formulario web de alta de ticket (o envía un correo) aportando datos, asunto, mensaje y adjuntos; consulta el estado del ticket ingresando su identificador de seguimiento (*tracking ID*) y correo (o autenticándose en su cuenta); y añade respuestas en texto plano.
+- **Resultado esperado:** Obtener la confirmación del registro del ticket, recibir respuestas claras a su problema dentro de un plazo predecible y poder verificar el progreso de su solicitud de forma transparente
+
+**2. Agente de Soporte (*Staff*)**
+
+- **Comportamientos observables:** Inicia sesión en el panel administrativo, filtra las bandejas por categoría o estado, toma o se asigna tickets, reclasifica prioridad o vencimiento, redacta respuestas usando texto enriquecido o plantillas predefinidas, agrega notas internas no visibles para el usuario y cambia el estado del ticket a resuelto o cerrado.
+- **Resultado esperado:** Disponer de una interfaz ordenada que le permita gestionar y priorizar su carga de trabajo diaria, comunicarse eficientemente con el cliente.
+
+**3. Administrador del Sistema**
+
+- **Comportamientos observables:** Define la estructura operativa configurando categorías, estados, prioridades, campos personalizados, reglas de autoasignación y límites de adjuntos; administra usuarios *staff*, grupos de permisos y cuentas de clientes; y consulta o exporta reportes analíticos de rendimiento.
+- **Resultado esperado:** Garantizar la gobernanza de la plataforma, la correcta aplicación de las políticas de acceso/seguridad y contar con visibilidad operativa sobre el volumen de atención y desempeño del equipo.
+
+**4. Procesos del Sistema / Tareas Programadas (*Cron* y Correo)**
+
+- **Comportamientos observables:** Procesan el envío de notificaciones automáticas por SMTP, reciben o parsean correos entrantes (IMAP/POP3/piping) y ejecutan scripts periódicos para identificar e informar sobre tickets vencidos.
+- **Resultado esperado:** Ejecutar las tareas de integración y temporización en segundo plano de manera limpia, sin generar bucles, registros duplicados ni pérdidas de información.
+
+### **Información que atraviesa todo el ciclo de vida del ticket**
+
+Para que la solicitud mantenga su trazabilidad desde la apertura hasta el cierre, los siguientes datos deben persistir y acompañar al ticket en todo momento:
+
+- **Identificación y propiedad:** Identificador de seguimiento público (**`trackid`**), ID interno secuencial, e identidad/contacto del cliente (nombre y correo electrónico).
+- **Clasificación y estado:** Categoría asignada, prioridad (Baja, Media, Alta, Crítica) y estado actual (Nuevo, En progreso, Esperando respuesta, Respondido, En espera, Resuelto).
+- **Responsabilidad:** Agente propietario (*owner*), colaboradores asignados y seguidores.
+- **Contenido funcional:** Asunto, mensaje inicial, valores de campos personalizados (**`customN`**) y archivos adjuntos vinculados.
+- **Historial conversacional:** Conjunto cronológico de respuestas enviadas tanto por el cliente como por el *staff* (**`replies`**).
+- **Trazabilidad temporal y auditoría:** Fecha de creación (**`dt`**), fecha de última modificación (**`lastchange`**), fecha de cierre (**`closedat`**), fecha límite de vencimiento (**`due_date`**), usuario de apertura/cierre, tiempo trabajado y registro de cambios (*history*)
+
+### **Componentes observables vs. componentes ocultos del producto**
+
+| **Dimensión** | **Componentes Observables (Interfaz / Frontend)** | **Componentes Ocultos (Backend / Persistencia / Sistema)** |
+| --- | --- | --- |
+| **Portal del Cliente** | Formulario público de alta de tickets, pantalla de consulta por *tracking ID* + correo, portal de inicio de sesión de clientes y visor de artículos de la Base de Conocimiento pública. | Sanitización del contenido ingresado (HTMLPurifier), validación de tokens anti-CSRF, verificación de captcha/antispam y lógica PHP de manejo del formulario (**`submit_ticket.php`**). |
+| **Atención de Agentes** | Consola administrativa (**`/admin`**), bandejas de entrada, vistas de detalle de tickets, editores WYSIWYG (TinyMCE) y pantallas de reportes. | **Notas internas:** Comentarios e información técnica añadidos por el *staff* que están restringidos por lógica de negocio y jamás se muestran en la interfaz del cliente. |
+| **Base de Datos y Datos** | Listados tabulares de registros, conteo de respuestas y visualización de adjuntos descargables. | **Modelo MySQL/MariaDB:** Estructura subyacente de 40 tablas relacionales (**`hesk_tickets`**, **`hesk_replies`**, **`hesk_users`**, etc.), consultas SQL dinámicas y almacenamiento físico de archivos en el servidor (**`/attachments`**). |
+| **Procesos y Configuración** | Formularios de ajustes generales, menús de gestión de permisos y botones de ejecución. | Scripts ejecutados por *Cron* (**`/cron/email_overdue_tickets.php`**), manejo de conexiones de correo (SMTP/IMAP/POP3), claves secretas en **`hesk_settings.inc.php`** y archivos de caché generados en **`/cache`**. |
